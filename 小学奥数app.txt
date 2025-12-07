@@ -1,0 +1,348 @@
+import React, { useState, useEffect } from 'react';
+import { BookOpen, Lightbulb, Trophy, ChevronRight, RotateCcw, Check, X } from 'lucide-react';
+
+const MathOlympiadApp = () => {
+  const [currentLevel, setCurrentLevel] = useState(1);
+  const [currentProblem, setCurrentProblem] = useState(0);
+  const [showHint, setShowHint] = useState(false);
+  const [showSolution, setShowSolution] = useState(false);
+  const [userAnswer, setUserAnswer] = useState('');
+  const [feedback, setFeedback] = useState(null);
+  const [progress, setProgress] = useState({});
+
+  const problems = {
+    1: [
+      {
+        title: "找规律 - 数字序列",
+        question: "观察数列：2, 4, 6, 8, __, 12。空格应该填什么数字？",
+        answer: "10",
+        hints: [
+          "提示1：观察相邻两个数字之间的关系",
+          "提示2：每个数字和前一个数字相差多少？",
+          "提示3：这是一个等差数列，公差是2"
+        ],
+        solution: {
+          thinking: "解题思路：\n1. 观察数列特点：2, 4, 6, 8, ?, 12\n2. 计算相邻数字的差：4-2=2, 6-4=2, 8-6=2\n3. 发现规律：每次增加2（等差数列）\n4. 应用规律：8+2=10",
+          answer: "答案是10",
+          extension: "举一反三：\n• 如果数列是 3, 6, 9, 12, ?, 18，答案是多少？（15）\n• 如果数列是 1, 3, 5, 7, ?, 11，答案是多少？（9）"
+        },
+        difficulty: "基础"
+      },
+      {
+        title: "找规律 - 图形序列",
+        question: "一个图形序列中，第1个图形有3个三角形，第2个有5个三角形，第3个有7个三角形。第5个图形有多少个三角形？",
+        answer: "11",
+        hints: [
+          "提示1：列出已知信息：第1个→3个，第2个→5个，第3个→7个",
+          "提示2：每次增加几个三角形？",
+          "提示3：找出数量和序号的关系公式"
+        ],
+        solution: {
+          thinking: "解题思路：\n1. 整理数据：\n   第1个：3个三角形\n   第2个：5个三角形\n   第3个：7个三角形\n2. 找规律：5-3=2, 7-5=2（每次加2）\n3. 继续推算：\n   第4个：7+2=9个\n   第5个：9+2=11个\n4. 或用公式：第n个图形 = 2n+1个三角形",
+          answer: "答案是11个三角形",
+          extension: "举一反三：\n• 如果第10个图形有多少个三角形？（21个）\n• 如果某个图形有25个三角形，它是第几个？（第12个）"
+        },
+        difficulty: "基础"
+      }
+    ],
+    2: [
+      {
+        title: "巧算 - 凑整法",
+        question: "计算：37 + 48 + 63 + 52 = ?",
+        answer: "200",
+        hints: [
+          "提示1：观察这些数字，有没有可以配对的？",
+          "提示2：37和63相加，48和52相加",
+          "提示3：配对后计算会更简单"
+        ],
+        solution: {
+          thinking: "解题思路（凑整法）：\n1. 观察数字特点：\n   37 + 63 = 100（凑成整百）\n   48 + 52 = 100（凑成整百）\n2. 重新组合计算：\n   (37 + 63) + (48 + 52)\n   = 100 + 100\n   = 200",
+          answer: "答案是200",
+          extension: "举一反三：\n• 计算 25 + 36 + 75 + 64 = ? (200)\n• 计算 18 + 45 + 82 + 55 = ? (200)\n关键：寻找能凑成整十或整百的数对"
+        },
+        difficulty: "进阶"
+      },
+      {
+        title: "植树问题",
+        question: "在一条长100米的小路一侧植树，每隔10米种一棵（两端都种）。一共要种多少棵树？",
+        answer: "11",
+        hints: [
+          "提示1：画图理解：树的数量和间隔数量的关系",
+          "提示2：100米每隔10米，有几个间隔？",
+          "提示3：两端都种树，树的数量 = 间隔数 + 1"
+        ],
+        solution: {
+          thinking: "解题思路（植树问题-两端都种）：\n1. 理解题意：\n   总长100米，间隔10米，两端都种\n2. 计算间隔数：\n   100 ÷ 10 = 10（个间隔）\n3. 关键公式：\n   两端都种：树数 = 间隔数 + 1\n   10 + 1 = 11（棵）",
+          answer: "答案是11棵树",
+          extension: "举一反三：\n• 如果只种一端，需要多少棵？（10棵）\n• 如果两端都不种，需要多少棵？（9棵）\n• 如果是封闭路线（圆形），需要多少棵？（10棵）"
+        },
+        difficulty: "进阶"
+      }
+    ],
+    3: [
+      {
+        title: "鸡兔同笼",
+        question: "笼子里有鸡和兔共20只，共有52只脚。问笼子里有多少只鸡，多少只兔？",
+        answer: "14只鸡，6只兔",
+        hints: [
+          "提示1：假设全是鸡，会有多少只脚？",
+          "提示2：实际脚数比假设多了多少？",
+          "提示3：每只兔比鸡多2只脚，多出的脚数÷2就是兔数"
+        ],
+        solution: {
+          thinking: "解题思路（假设法）：\n1. 假设全是鸡：\n   20只鸡应有：20 × 2 = 40只脚\n2. 比较实际脚数：\n   实际有52只脚\n   多出：52 - 40 = 12只脚\n3. 计算兔子数：\n   每只兔比鸡多：4 - 2 = 2只脚\n   兔子数：12 ÷ 2 = 6只\n4. 计算鸡数：\n   鸡数：20 - 6 = 14只",
+          answer: "答案是14只鸡，6只兔",
+          extension: "举一反三：\n• 如果共30只，70只脚，各多少？（25只鸡，5只兔）\n• 如果鸡兔共15只，共有38只脚呢？（11只鸡，4只兔）\n拓展：如果还有蜘蛛（8只脚）怎么办？"
+        },
+        difficulty: "挑战"
+      },
+      {
+        title: "年龄问题",
+        question: "爸爸今年36岁，儿子今年8岁。几年后爸爸的年龄是儿子的3倍？",
+        answer: "6年后",
+        hints: [
+          "提示1：年龄差永远不变",
+          "提示2：计算现在的年龄差：36 - 8 = 28岁",
+          "提示3：当爸爸是儿子3倍时，年龄差是儿子年龄的2倍"
+        ],
+        solution: {
+          thinking: "解题思路（年龄问题核心：年龄差不变）：\n1. 找出年龄差：\n   36 - 8 = 28岁（差值不变）\n2. 理解倍数关系：\n   当爸爸是儿子3倍时：\n   爸爸 = 儿子 × 3\n   差 = 儿子 × 3 - 儿子 = 儿子 × 2\n3. 计算那时儿子年龄：\n   28 ÷ 2 = 14岁\n4. 计算需要几年：\n   14 - 8 = 6年",
+          answer: "答案是6年后",
+          extension: "举一反三：\n• 几年后爸爸年龄是儿子的2倍？（20年后）\n• 几年前爸爸年龄是儿子的5倍？（2年前）\n• 如果妈妈今年32岁，何时三人年龄和是100？"
+        },
+        difficulty: "挑战"
+      }
+    ]
+  };
+
+  useEffect(() => {
+    const savedProgress = JSON.parse(localStorage.getItem('mathProgress') || '{}');
+    setProgress(savedProgress);
+  }, []);
+
+  const saveProgress = (level, problemIndex, correct) => {
+    const key = `${level}-${problemIndex}`;
+    const newProgress = { ...progress, [key]: correct };
+    setProgress(newProgress);
+    localStorage.setItem('mathProgress', JSON.stringify(newProgress));
+  };
+
+  const checkAnswer = () => {
+    const problem = problems[currentLevel][currentProblem];
+    const correct = userAnswer.trim().toLowerCase() === problem.answer.toLowerCase() ||
+                    userAnswer.trim() === problem.answer;
+    
+    setFeedback(correct);
+    if (correct) {
+      saveProgress(currentLevel, currentProblem, true);
+    }
+  };
+
+  const resetProblem = () => {
+    setUserAnswer('');
+    setFeedback(null);
+    setShowHint(false);
+    setShowSolution(false);
+  };
+
+  const nextProblem = () => {
+    const levelProblems = problems[currentLevel];
+    if (currentProblem < levelProblems.length - 1) {
+      setCurrentProblem(currentProblem + 1);
+      resetProblem();
+    }
+  };
+
+  const prevProblem = () => {
+    if (currentProblem > 0) {
+      setCurrentProblem(currentProblem - 1);
+      resetProblem();
+    }
+  };
+
+  const problem = problems[currentLevel][currentProblem];
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 p-4">
+      <div className="max-w-4xl mx-auto">
+        {/* Header */}
+        <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Trophy className="w-8 h-8 text-yellow-500" />
+              <div>
+                <h1 className="text-2xl font-bold text-gray-800">小学数学奥赛辅导</h1>
+                <p className="text-sm text-gray-600">培养数学思维，提升解题能力</p>
+              </div>
+            </div>
+            <div className="text-right">
+              <p className="text-sm text-gray-600">当前级别</p>
+              <p className="text-xl font-bold text-purple-600">Level {currentLevel}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Level Selection */}
+        <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
+          <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
+            <BookOpen className="w-5 h-5 text-blue-500" />
+            选择难度级别
+          </h2>
+          <div className="grid grid-cols-3 gap-3">
+            {[1, 2, 3].map(level => (
+              <button
+                key={level}
+                onClick={() => {
+                  setCurrentLevel(level);
+                  setCurrentProblem(0);
+                  resetProblem();
+                }}
+                className={`p-4 rounded-lg font-medium transition-all ${
+                  currentLevel === level
+                    ? 'bg-purple-500 text-white shadow-md'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                {level === 1 && '基础入门'}
+                {level === 2 && '进阶提升'}
+                {level === 3 && '挑战冲刺'}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Problem Card */}
+        <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
+          <div className="flex justify-between items-start mb-4">
+            <div>
+              <span className="inline-block px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-medium mb-2">
+                {problem.difficulty}
+              </span>
+              <h2 className="text-xl font-bold text-gray-800">{problem.title}</h2>
+            </div>
+            <div className="text-sm text-gray-500">
+              题目 {currentProblem + 1} / {problems[currentLevel].length}
+            </div>
+          </div>
+
+          <div className="bg-blue-50 rounded-lg p-4 mb-6">
+            <p className="text-lg text-gray-800 leading-relaxed">{problem.question}</p>
+          </div>
+
+          {/* Answer Input */}
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              你的答案：
+            </label>
+            <input
+              type="text"
+              value={userAnswer}
+              onChange={(e) => setUserAnswer(e.target.value)}
+              placeholder="在这里输入答案..."
+              className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-purple-500 focus:outline-none"
+            />
+          </div>
+
+          {/* Feedback */}
+          {feedback !== null && (
+            <div className={`mb-6 p-4 rounded-lg flex items-center gap-3 ${
+              feedback ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'
+            }`}>
+              {feedback ? <Check className="w-6 h-6" /> : <X className="w-6 h-6" />}
+              <span className="font-medium">
+                {feedback ? '回答正确！做得很好！' : '答案不对，再想想看或查看提示'}
+              </span>
+            </div>
+          )}
+
+          {/* Action Buttons */}
+          <div className="flex gap-3 mb-6">
+            <button
+              onClick={checkAnswer}
+              disabled={!userAnswer.trim()}
+              className="flex-1 bg-purple-500 text-white py-3 rounded-lg font-medium hover:bg-purple-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all"
+            >
+              提交答案
+            </button>
+            <button
+              onClick={() => setShowHint(!showHint)}
+              className="px-6 py-3 bg-yellow-500 text-white rounded-lg font-medium hover:bg-yellow-600 transition-all flex items-center gap-2"
+            >
+              <Lightbulb className="w-5 h-5" />
+              提示
+            </button>
+            <button
+              onClick={resetProblem}
+              className="px-6 py-3 bg-gray-500 text-white rounded-lg font-medium hover:bg-gray-600 transition-all"
+            >
+              <RotateCcw className="w-5 h-5" />
+            </button>
+          </div>
+
+          {/* Hints */}
+          {showHint && (
+            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+              <h3 className="font-semibold text-yellow-800 mb-2">💡 解题提示：</h3>
+              {problem.hints.map((hint, idx) => (
+                <p key={idx} className="text-yellow-700 mb-1">{hint}</p>
+              ))}
+            </div>
+          )}
+
+          {/* Solution */}
+          <div className="border-t pt-6">
+            <button
+              onClick={() => setShowSolution(!showSolution)}
+              className="w-full py-3 bg-blue-100 text-blue-700 rounded-lg font-medium hover:bg-blue-200 transition-all"
+            >
+              {showSolution ? '隐藏解析' : '查看详细解析'}
+            </button>
+
+            {showSolution && (
+              <div className="mt-4 space-y-4">
+                <div className="bg-green-50 rounded-lg p-4">
+                  <h3 className="font-semibold text-green-800 mb-2">🎯 解题思路：</h3>
+                  <pre className="text-green-700 whitespace-pre-wrap font-sans">
+                    {problem.solution.thinking}
+                  </pre>
+                </div>
+
+                <div className="bg-blue-50 rounded-lg p-4">
+                  <h3 className="font-semibold text-blue-800 mb-2">✅ {problem.solution.answer}</h3>
+                </div>
+
+                <div className="bg-purple-50 rounded-lg p-4">
+                  <h3 className="font-semibold text-purple-800 mb-2">🚀 举一反三：</h3>
+                  <pre className="text-purple-700 whitespace-pre-wrap font-sans">
+                    {problem.solution.extension}
+                  </pre>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Navigation */}
+        <div className="flex justify-between gap-4">
+          <button
+            onClick={prevProblem}
+            disabled={currentProblem === 0}
+            className="px-6 py-3 bg-gray-500 text-white rounded-lg font-medium hover:bg-gray-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all"
+          >
+            上一题
+          </button>
+          <button
+            onClick={nextProblem}
+            disabled={currentProblem === problems[currentLevel].length - 1}
+            className="px-6 py-3 bg-purple-500 text-white rounded-lg font-medium hover:bg-purple-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all flex items-center gap-2"
+          >
+            下一题
+            <ChevronRight className="w-5 h-5" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default MathOlympiadApp;
